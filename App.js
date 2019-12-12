@@ -88,39 +88,39 @@ class FlatListComponent extends Component {
     }
 }
 
-const styles = StyleSheet({
+const styles = StyleSheet.create({
+
     container: {
         flex: 1,
-        height: 1000,
-        margin: 20,
+        margin: 5,
+        marginTop: 40,
         backgroundColor: '#fff',
         flexDirection: 'column',
         alignItems: 'stretch',
         justifyContent: 'space-between',
     },
 
-    buttonContainer: {
-        backgroundColor:'blue',
-        flex: 1,
-        justifyContent: 'flex-end',
+    notesList: {
+        backgroundColor: '#ebebeb',
+        margin: 5,
+        alignItems: 'flex-start',
+        borderRadius: 3,
     },
 
-    textContainer: {
-        backgroundColor:'red',
-        flex: 1,
-        marginTop: 20,
+    notesListText: {
+        margin: 10,
+        fontSize: 20,
+    },
+
+    notesAddButton: {
+        margin: 5,
+        backgroundColor: '#6499ff',
         alignItems: 'center',
+        borderRadius: 10,
     },
 
-    textInputContainer: {
-        backgroundColor:'green',
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'space-around',
-    },
-
-    flatListContainer: {
-        backgroundColor:'pink',
-        flex: 1,
-    },
-});
+    notesAddButtonText: {
+        margin: 20,
+        fontSize: 22,
+    }
+})
