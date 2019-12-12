@@ -1,5 +1,15 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Button, TextInput, ScrollView, FlatList } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableNativeFeedback, } from 'react-native';
+import { createStackNavigator, createAppContainer } from 'react-navigation';
+
+const AppNavigator = createStackNavigator({
+    Home: {screen: HomeScreen},
+    Profile: {screen: ProfileScreen},
+    },
+    {initialRouteName: 'Home'}
+);
+
+const App = createAppContainer(AppNavigator);
 
 export default function App() {
 
@@ -11,19 +21,14 @@ export default function App() {
     );
 }
 
-class ButtonComponent extends Component {
-    onPressButton = () => {
-        alert('add note');
+class HomeScreen extends React.Component {
+    static navigationOptions = {
+        title: 'Welcome',
     };
-
     render() {
+        const { navigate } = this.props.navigation;
         return (
-            <View  style = {styles.buttonContainer}>
-                <Button
-                    onPress = {this.onPressButton}
-                    title = { this.props.title }
-                />
-            </View>
+            <Button title="Go to Jane's profile" onPress={() => navigate('Profile', { name: 'Jane' })} />
         );
     }
 }
