@@ -2,24 +2,12 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, Button, TextInput, ScrollView, FlatList } from 'react-native';
 
 export default function App() {
+
     return (
-        <ScrollView>
-            <View style = {styles.container}>
-                <View style = {styles.textContainer}>
-                    <Text>Hello, world!</Text>
-                </View>
-
-                <TextInputAndTextComponent
-                    placeholder = {'Введите текст'}
-                />
-
-                <FlatListComponent/>
-
-                <ButtonComponent
-                    title = {'Add Note'}
-                />
-            </View>
-        </ScrollView>
+        <App/>
+        // <View style={styles.container}>
+        //     <AddNotes/>
+        // </View>
     );
 }
 
@@ -40,51 +28,47 @@ class ButtonComponent extends Component {
     }
 }
 
-class TextInputAndTextComponent extends Component {
+class ListOfNotes extends Component {
+
+}
+
+class AddNotes extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            text: '',
-        }
+            arrayOfNotes: [],
+        };
+        this.index = 0;
+    }
+
+    _onPress() {
+        let temp = this.index++;
+        let newArrayOfNotes = this.state.arrayOfNotes;
+        newArrayOfNotes.push(temp);
+        this.setState({arrayOfNotes: newArrayOfNotes });
     }
 
     render() {
-        return (
-            <View style = {styles.textInputContainer}>
-                <TextInput
-                    placeholder = {this.props.placeholder}
-                    onChangeText = {(text) => this.setState({text})}
-                    value = {this.state.text}
-                />
-                <Text>
-                    {this.state.text}
-                </Text>
+        let notes = this.state.arrayOfNotes.map((note, key) => {
+            return <View key = {key} style = {styles.notesList}>
+                <Text style = {styles.notesListText}>{note}</Text>
+            </View>
+        });
+
+        return(
+            <View>
+                <TouchableNativeFeedback
+                    onPress = {() => this._onPress()}
+                    background = {TouchableNativeFeedback.SelectableBackground()}>
+                    <View style = {styles.notesAddButton}>
+                        <Text style = {styles.notesAddButtonText}>Добавить заметку</Text>
+                    </View>
+                </TouchableNativeFeedback>
+                <ScrollView>
+                    {notes}
+                </ScrollView>
             </View>
         );
-    }
-}
-
-class FlatListComponent extends Component {
-    render() {
-        return (
-            <View style={styles.flatListContainer}>
-                <FlatList
-                    data={[
-                        {key: 'Devin'},
-                        {key: 'Dan'},
-                        {key: 'Dominic'},
-                        {key: 'Jackson'},
-                        {key: 'James'},
-                        {key: 'Joel'},
-                        {key: 'John'},
-                        {key: 'Jillian'},
-                        {key: 'Jimmy'},
-                        {key: 'Julie'},
-                    ]}
-                    renderItem={({item}) => <Text style = {{fontSize:26}}>{item.key}</Text>}
-                />
-            </View>
-        )
     }
 }
 
