@@ -1,40 +1,28 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableNativeFeedback, } from 'react-native';
-import { createStackNavigator, createAppContainer } from 'react-navigation';
+import { createAppContainer } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
+import { HomeScreen } from './src/screens/HomeScreen';
+import { NoteScreen } from './src/screens/NoteScreen';
+
 
 const AppNavigator = createStackNavigator({
     Home: {screen: HomeScreen},
-    Profile: {screen: ProfileScreen},
+    Note: {screen: NoteScreen},
     },
     {initialRouteName: 'Home'}
 );
 
-const App = createAppContainer(AppNavigator);
+const AppContainer = createAppContainer(AppNavigator);
 
 export default function App() {
 
     return (
-        <App/>
+        <AppContainer/>
         // <View style={styles.container}>
         //     <AddNotes/>
         // </View>
     );
-}
-
-class HomeScreen extends React.Component {
-    static navigationOptions = {
-        title: 'Welcome',
-    };
-    render() {
-        const { navigate } = this.props.navigation;
-        return (
-            <Button title="Go to Jane's profile" onPress={() => navigate('Profile', { name: 'Jane' })} />
-        );
-    }
-}
-
-class ListOfNotes extends Component {
-
 }
 
 class AddNotes extends Component {
