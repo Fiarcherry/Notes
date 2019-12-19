@@ -100,4 +100,4 @@ const styles = StyleSheet.create({
         margin: 20,
         fontSize: 22,
     }
-})
+});
