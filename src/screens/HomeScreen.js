@@ -66,7 +66,6 @@ export class HomeScreen extends React.Component {
         if (notes.length > 0) {
             notesToRender = notes.map(value => {
                 return (
-                    <View>
                         <TouchableOpacity
                             key = {value.id}
                             onPress = {() => {
@@ -84,13 +83,6 @@ export class HomeScreen extends React.Component {
                         >
                             <Text>{value.title}</Text>
                         </TouchableOpacity>
-                        <Text>divider</Text>
-                        <FlatList
-                            data={DATA}
-                            renderItem={({ item }) => <Item title={item.title} />}
-                            keyExtractor={item => item.id}
-                        />
-                    </View>
                 );
             });
         } else {
@@ -122,6 +114,12 @@ export class HomeScreen extends React.Component {
                 >
                     {notesToRender}
                 </ScrollView>
+                <Text>divider</Text>
+                <FlatList
+                    data={DATA}
+                    renderItem={({ item }) => <Item title={item.title} />}
+                    keyExtractor={item => item.id}
+                />
             </View>
         );
     }
