@@ -4,7 +4,8 @@ import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { NoteScreen } from './src/screens/NoteScreen';
-
+import * as SQLite from 'expo-sqlite';
+global.db = SQLite.openDatabase("db.db");
 
 const AppNavigator = createStackNavigator({
     Home: {screen: HomeScreen},

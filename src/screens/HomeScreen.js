@@ -1,23 +1,16 @@
 import React, { Component } from "react";
 import {
     Button,
-    StyleSheet,
     Text,
     View,
     ScrollView,
     TouchableOpacity,
     RefreshControl
 } from "react-native";
-import { createAppContainer } from "react-navigation";
-import { createStackNavigator } from "react-navigation-stack";
-import * as SQLite from 'expo-sqlite';
-const db = SQLite.openDatabase("db.db");
 
 export class HomeScreen extends React.Component {
     constructor(props) {
         super(props);
-
-        console.log(this.props.navigation.getParam("update", false));
 
         this.state = {
             notes: [],
@@ -30,6 +23,7 @@ export class HomeScreen extends React.Component {
   };
 
   componentDidMount() {
+      console.log('component did mount Home')
       //this.update().then(() => {
           //console.log(this.state);
       //});
@@ -40,45 +34,49 @@ export class HomeScreen extends React.Component {
   }
 
   render() {
+      console.log("param update is " + this.props.navigation.getParam("update", false));
+
       const notes = this.state.notes;
 
-      /*if (notes === null || notes.length === 0){
-          console.log('0 notes found');
-          return null;
-      }*/
-
       let notesToRender = null;
-      if (notes !== null && notes.length > 0) {
+      if (notes.length > 0) {
           notesToRender = notes.map(value => {
               return (
                   <TouchableOpacity
-                      //title={value.title}
-                      key={value.id}
-                      onPress={() => this.onPressNote(value.id)}
+                      key = {value.id}
+                      onPress = {() => {
+                          this.onPressNote(value.id);
+
+                          this.props.navigation.navigate("Note", {
+                              id: value.id
+                          });
+                      }}
                   >
                       <Text>{value.title}</Text>
                   </TouchableOpacity>
               );
           });
+      } else {
+          console.log('0 notes found');
       }
 
       return (
           <View>
               <Button
-                  title="Add Note"
-                  onPress={() => {
+                  title = "Add Note"
+                  onPress = {() => {
                       console.log("add note was pressed");
                       this.props.navigation.navigate("Note", {
                           onGoBack: () => {
                               this.update().then(r => {
-                                  //do nothing. yet.
+                                  console.log("on go back called");
                               });
                           }
                       });
                   }}
               />
               <ScrollView
-                  refreshControl={
+                  refreshControl = {
                       <RefreshControl
                           refreshing={this.state.refreshing}
                           onRefresh={this.update}
@@ -92,7 +90,8 @@ export class HomeScreen extends React.Component {
   }
 
   update = async () => {
-      console.log("update");
+      console.log("update method called");
+
       await this.setState({ refreshing: true });
 
       db.transaction(tx => {
@@ -106,7 +105,10 @@ export class HomeScreen extends React.Component {
               "select * from notes",
               [],
               async (_, { rows: { _array } }) => {
-                  await this.setState({ notes: _array, refreshing: false });
+                  await this.setState({
+                      notes: _array,
+                      refreshing: false
+                  });
               }
           );
       });
