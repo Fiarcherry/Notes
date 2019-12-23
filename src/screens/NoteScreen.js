@@ -23,7 +23,7 @@ export class NoteScreen extends Component {
 
     static navigationOptions = {
         title: this.title,
-    };v
+    };
 
     render() {
         return(
@@ -49,7 +49,10 @@ export class NoteScreen extends Component {
                         });
 
                         console.log('save note');
-                        this.props.navigation.navigate("Home");
+                        this.props.navigation.state.params.onGoBack();
+                        this.props.navigation.navigate("Home", {
+                            update: true
+                        });
                     }}
                 />
             </View>
