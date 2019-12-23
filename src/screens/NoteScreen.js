@@ -25,20 +25,16 @@ export class NoteScreen extends Component {
     }
 
     componentWillMount() {
-        console.log('t:' + this.state.title);
-        console.log(this.state.body);
+        console.log('component will mount Note');
 
         let id = this.props.navigation.getParam('id', null);
+
         if (id != null) {
             this.select(id);
         }
-
-        console.log(this.state.title);
-        console.log(this.state.body);
     }
 
     render() {
-
         return(
             <View>
                 <ScrollView>
@@ -58,7 +54,9 @@ export class NoteScreen extends Component {
                     <Button
                         title = "Save Note"
                         onPress = {() => {
-                            this.add(this.state.title, this.state.body);
+                            let id = this.props.navigation.getParam('id', null);
+
+                            this.save(id, this.state.title, this.state.body);
                             this.setState({
                                 title: null,
                                 body: null,
@@ -76,12 +74,8 @@ export class NoteScreen extends Component {
                         title = "Delete Note"
                         onPress = {() => {
                             this.delete(this.props.navigation.getParam('id', null));
-                            this.setState({
-                                title: null,
-                                body: null,
-                            });
 
-                            console.log('save note button pressed');
+                            console.log('delete note button pressed');
 
                             this.props.navigation.state.params.onGoBack();
                             this.props.navigation.navigate("Home", {
@@ -94,21 +88,36 @@ export class NoteScreen extends Component {
         )
     }
 
-    add(title, body){
-        console.log("add method called")
-
-        if (title === null || title === '' || body === null || body === ''){
-            console.log('something is empty');
-            return false;
+    checkEmptyInput(textInput){
+        if (textInput === null || textInput === ''){
+            return 'Untitled';
         }
 
-        db.transaction(
-            tx => {
-                tx.executeSql('insert into notes (title, body) values (?, ?)',
-                    [title, body]
-                );
-            }
-        );
+        return textInput;
+    }
+
+    save(id, title, body){
+        console.log("save method called")
+
+        title = this.checkEmptyInput(title);
+
+        if (id == null) {
+            db.transaction(
+                tx => {
+                    tx.executeSql('insert into notes (title, body) values (?, ?)',
+                        [title, body]
+                    );
+                }
+            );
+        } else {
+            db.transaction(
+                tx => {
+                    tx.executeSql('update notes set title = ?, body = ? where id = ?',
+                        [title, body, id]
+                    );
+                }
+            );
+        }
     }
 
     select(id){
@@ -120,8 +129,8 @@ export class NoteScreen extends Component {
                     [id],
                     async (_, { rows: { _array } }) => {
                     await this.setState({
-                        title: _array.title,
-                        body: _array.body
+                        title: _array[0].title,
+                        body: _array[0].body
                     });
                 });
             }
@@ -130,7 +139,6 @@ export class NoteScreen extends Component {
 
     delete(id){
         console.log("delete method called")
-
 
         db.transaction(
             tx => {
