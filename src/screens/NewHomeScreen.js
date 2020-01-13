@@ -23,6 +23,7 @@ export class HomeScreen extends React.Component {
       notes: [],
       refreshing: false
     };
+    console.log('NEWHOMESCREEN');
   }
 
   static navigationOptions = {

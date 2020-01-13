@@ -19,6 +19,7 @@ export class NoteScreen extends Component {
             title: null,
             body: null,
         };
+        console.log('NEWNOTESCREEN');
     }
 
     static navigationOptions = {
