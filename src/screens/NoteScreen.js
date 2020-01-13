@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import {
     View,
+    SafeAreaView,
     TextInput,
     Button,
     ScrollView,
+    StyleSheet,
 } from 'react-native';
 
 export class NoteScreen extends Component {
@@ -14,6 +16,7 @@ export class NoteScreen extends Component {
             title: null,
             body: null,
         };
+        console.log('NOTESCREEN');
     }
 
     static navigationOptions = {
@@ -36,22 +39,23 @@ export class NoteScreen extends Component {
 
     render() {
         return(
-            <View>
+            <SafeAreaView style = {styles.container}>
                 <ScrollView>
-                    <TextInput
+                    <TextInput style = {styles.title}
                         placeholder = 'Title'
                         onChangeText = {title => this.setState({title})}
                         onSubmitEditing = {() => {console.log(this.state.title)}}
                         value = {this.state.title}
                     />
-                    <TextInput
+                    <TextInput style = {styles.text}
                         placeholder = 'Body'
                         onChangeText = {body => this.setState({body})}
                         onSubmitEditing = {() => {console.log(this.state.body)}}
                         multiline = { true }
                         value = {this.state.body}
                     />
-                    <Button
+                </ScrollView>
+                <Button style = {styles.buttonSaveNote}
                         title = "Save Note"
                         onPress = {() => {
                             let id = this.props.navigation.getParam('id', null);
@@ -69,8 +73,8 @@ export class NoteScreen extends Component {
                                 update: true
                             });
                         }}
-                    />
-                    <Button
+                />
+                <Button style = {styles.buttonDeleteNote}
                         title = "Delete Note"
                         onPress = {() => {
                             this.delete(this.props.navigation.getParam('id', null));
@@ -82,9 +86,8 @@ export class NoteScreen extends Component {
                                 update: true
                             });
                         }}
-                    />
-                </ScrollView>
-            </View>
+                />
+            </SafeAreaView>
         )
     }
 
@@ -149,3 +152,35 @@ export class NoteScreen extends Component {
         );
     }
 }
+
+const styles = StyleSheet.create({
+
+    container: {
+        flex: 1,
+        backgroundColor: 'rgba(239,193,3,0.17)',
+    },
+
+    title: {
+        paddingHorizontal: 10,
+        fontSize: 24,
+        color: 'rgb(0,0,0)',
+        textAlign: 'center',
+    },
+
+    text: {
+        paddingHorizontal: 10,
+        fontSize: 16,
+        color: 'rgba(81,58,13,0.95)',
+        marginBottom: 3,
+    },
+
+    buttonSaveNote: {
+        marginHorizontal: 5,
+        color: 'rgba(63,31,0,0.85)',
+    },
+
+    buttonDeleteNote: {
+        marginHorizontal: 5,
+        color: 'rgba(63,31,0,0.85)',
+    },
+});
