@@ -3,34 +3,13 @@ import {
     Button,
     Text,
     View,
+    SafeAreaView,
     ScrollView,
     TouchableOpacity,
     RefreshControl,
     FlatList,
+    StyleSheet,
 } from "react-native";
-
-const DATA = [
-    {
-        id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
-        title: 'First Item',
-    },
-    {
-        id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
-        title: 'Second Item',
-    },
-    {
-        id: '58694a0f-3da1-471f-bd96-145571e29d72',
-        title: 'Third Item',
-    },
-];
-
-function Item({ title }) {
-    return (
-        <View>
-            <Text>{title}</Text>
-        </View>
-    );
-}
 
 export class HomeScreen extends React.Component {
     constructor(props) {
@@ -40,10 +19,11 @@ export class HomeScreen extends React.Component {
             notes: [],
             refreshing: false
         };
+        console.log('HOMESCREEN');
     }
 
     static navigationOptions = {
-    title: "Notes"
+        title: "Notes"
     };
 
     componentDidMount() {
@@ -53,45 +33,20 @@ export class HomeScreen extends React.Component {
       });
     }
 
-    onPressNote(id){
-        console.log(id + ' note was pressed');
-    }
-
     render() {
         console.log("param update is " + this.props.navigation.getParam("update", false));
 
         const notes = this.state.notes;
 
-        let notesToRender = null;
         if (notes.length > 0) {
-            notesToRender = notes.map(value => {
-                return (
-                        <TouchableOpacity
-                            key = {value.id}
-                            onPress = {() => {
-                                this.onPressNote(value.id);
-
-                                this.props.navigation.navigate("Note", {
-                                    id: value.id,
-                                    onGoBack: () => {
-                                        this.update().then(r => {
-                                            console.log("on go back called");
-                                        });
-                                    }
-                                });
-                            }}
-                        >
-                            <Text>{value.title}</Text>
-                        </TouchableOpacity>
-                );
-            });
+            console.log(notes.length + ' notes found');
         } else {
             console.log('0 notes found');
         }
 
         return (
-            <View>
-                <Button
+            <SafeAreaView style = {styles.container}>
+                <Button style = {styles.buttonAddNote}
                     title = "Add Note"
                     onPress = {() => {
                         console.log("add note was pressed");
@@ -104,6 +59,7 @@ export class HomeScreen extends React.Component {
                         });
                     }}
                 />
+
                 <ScrollView
                     refreshControl = {
                         <RefreshControl
@@ -112,15 +68,30 @@ export class HomeScreen extends React.Component {
                         />
                     }
                 >
-                    {notesToRender}
+                    <FlatList
+                        data={this.state.notes}
+                        renderItem={({ item }) =>
+                            <TouchableOpacity style = {styles.listOfNotes}
+                                key = {item.id}
+                                onPress = {() => {
+                                    console.log(item.id + ' note was pressed');
+
+                                    this.props.navigation.navigate("Note", {
+                                        id: item.id,
+                                        onGoBack: () => {
+                                            this.update().then(r => {
+                                                console.log("on go back called");
+                                            });
+                                        }
+                                    });
+                                }}
+                            >
+                                <Text style = {styles.titleOfNotes}>{item.title}</Text>
+                            </TouchableOpacity>}
+                        keyExtractor={item => item.id}
+                    />
                 </ScrollView>
-                <Text>divider</Text>
-                <FlatList
-                    data={DATA}
-                    renderItem={({ item }) => <Item title={item.title} />}
-                    keyExtractor={item => item.id}
-                />
-            </View>
+            </SafeAreaView>
         );
     }
 
@@ -149,3 +120,33 @@ export class HomeScreen extends React.Component {
         });
     };
 }
+
+const styles = StyleSheet.create({
+
+   container: {
+       flex: 1,
+       marginBottom: 10,
+   },
+
+    listOfNotes: {
+        padding: 5,
+        paddingHorizontal: 10,
+        marginHorizontal: 5,
+        marginTop: 5,
+        flexDirection: 'row',
+        backgroundColor: 'rgba(239,193,3,0.17)',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        borderRadius: 5,
+    },
+
+    titleOfNotes: {
+        fontSize: 24,
+        color: 'rgba(81,58,13,0.95)',
+    },
+
+    buttonAddNote: {
+        marginHorizontal: 5,
+        color: 'rgba(81,58,13,0.95)',
+    },
+});
