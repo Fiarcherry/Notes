@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
 import {
-    View,
     SafeAreaView,
     TextInput,
     Button,
     ScrollView,
     StyleSheet,
+    TouchableOpacity,
+    Text,
+    DatePickerAndroid,
+    TimePickerAndroid,
 } from 'react-native';
 
 export class NoteScreen extends Component {
@@ -15,6 +18,11 @@ export class NoteScreen extends Component {
         this.state = {
             title: null,
             body: null,
+            day: null,
+            month: null,
+            year: null,
+            hour: null,
+            minute: null,
         };
         console.log('NOTESCREEN');
     }
@@ -37,16 +45,65 @@ export class NoteScreen extends Component {
         }
     }
 
+    async pickDate() {
+        try {
+            const { action, year, month, day } = await DatePickerAndroid.open({
+                mode: 'spinner',
+                date: new Date(),
+            });
+
+            if (action !== DatePickerAndroid.dissmissedAction) {
+                console.log('DatePickerAndroid.dissmissedAction');
+                this.setState({
+                    day: day,
+                    month: month + 1,
+                    year: year,
+                });
+            }
+        } catch ({code, message}) {
+            console.warn('Cannot open date picker', message);
+        }
+    }
+
+    async pickTime() {
+        try {
+            const { action, hour, minute } = await TimePickerAndroid.open({
+                hour: 0,
+                minute: 0,
+                is24Hour: true,
+                mode: 'spinner',
+            });
+            if (action !== TimePickerAndroid.dismissedAction) {
+                console.log('TimePickerAndroid.dissmissedAction');
+                this.setState({
+                    hour: hour,
+                    minute: minute,
+                });
+            }
+        } catch ({ code, message }) {
+            console.warn('Cannot open time picker', message);
+        }
+    }
+
     render() {
         return(
             <SafeAreaView style = {styles.container}>
+                <Button
+                    title = 'Pick Date'
+                    onPress = {() => this.pickDate()}
+                />
+                <Button
+                    title = 'Pick Time'
+                    onPress = {() => this.pickTime()}
+                />
+                <Text>{this.state.day}.{this.state.month}.{this.state.year}   {this.state.hour}:{this.state.minute}</Text>
+                <TextInput style = {styles.title}
+                    placeholder = 'Title'
+                    onChangeText = {title => this.setState({title})}
+                    onSubmitEditing = {() => {console.log(this.state.title)}}
+                    value = {this.state.title}
+                />
                 <ScrollView>
-                    <TextInput style = {styles.title}
-                        placeholder = 'Title'
-                        onChangeText = {title => this.setState({title})}
-                        onSubmitEditing = {() => {console.log(this.state.title)}}
-                        value = {this.state.title}
-                    />
                     <TextInput style = {styles.text}
                         placeholder = 'Body'
                         onChangeText = {body => this.setState({body})}
@@ -55,37 +112,37 @@ export class NoteScreen extends Component {
                         value = {this.state.body}
                     />
                 </ScrollView>
-                <Button style = {styles.buttonSaveNote}
-                        title = "Save Note"
-                        onPress = {() => {
-                            let id = this.props.navigation.getParam('id', null);
+                <Button
+                    title = 'Save Note'
+                    onPress = {() => {
+                        let id = this.props.navigation.getParam('id', null);
 
-                            this.save(id, this.state.title, this.state.body);
-                            this.setState({
-                                title: null,
-                                body: null,
-                            });
+                        this.save(id, this.state.title, this.state.body, this.state.day, this.state.month, this.state.year, this.state.hour, this.state.minute);
+                        this.setState({
+                            title: null,
+                            body: null,
+                        });
 
-                            console.log('save note button pressed');
+                        console.log('save note button pressed');
 
-                            this.props.navigation.state.params.onGoBack();
-                            this.props.navigation.navigate("Home", {
-                                update: true
-                            });
-                        }}
+                        this.props.navigation.state.params.onGoBack();
+                        this.props.navigation.navigate("Home", {
+                            update: true
+                        });
+                    }}
                 />
-                <Button style = {styles.buttonDeleteNote}
-                        title = "Delete Note"
-                        onPress = {() => {
-                            this.delete(this.props.navigation.getParam('id', null));
+                <Button
+                    title = "Delete Note"
+                    onPress = {() => {
+                        this.delete(this.props.navigation.getParam('id', null));
 
-                            console.log('delete note button pressed');
+                        console.log('delete note button pressed');
 
-                            this.props.navigation.state.params.onGoBack();
-                            this.props.navigation.navigate("Home", {
-                                update: true
-                            });
-                        }}
+                        this.props.navigation.state.params.onGoBack();
+                        this.props.navigation.navigate("Home", {
+                            update: true
+                        });
+                    }}
                 />
             </SafeAreaView>
         )
@@ -99,7 +156,7 @@ export class NoteScreen extends Component {
         return textInput;
     }
 
-    save(id, title, body){
+    save(id, title, body, day, month, year, hour, minute){
         console.log("save method called")
 
         title = this.checkEmptyInput(title);
@@ -107,16 +164,16 @@ export class NoteScreen extends Component {
         if (id == null) {
             db.transaction(
                 tx => {
-                    tx.executeSql('insert into notes (title, body) values (?, ?)',
-                        [title, body]
+                    tx.executeSql('insert into notes (title, body, day, month, year, hour, minute) values (?, ?, ?, ?, ?, ?, ?)',
+                        [title, body, day, month, year, hour, minute]
                     );
                 }
             );
         } else {
             db.transaction(
                 tx => {
-                    tx.executeSql('update notes set title = ?, body = ? where id = ?',
-                        [title, body, id]
+                    tx.executeSql('update notes set title = ?, body = ?, day = ?, month = ?, year = ?, hour = ?, minute = ? where id = ?',
+                        [title, body, day, month, year, hour, minute, id]
                     );
                 }
             );
@@ -133,7 +190,12 @@ export class NoteScreen extends Component {
                     async (_, { rows: { _array } }) => {
                     await this.setState({
                         title: _array[0].title,
-                        body: _array[0].body
+                        body: _array[0].body,
+                        day: _array[0].day,
+                        month: _array[0].month,
+                        year: _array[0].year,
+                        hour: _array[0].hour,
+                        minute: _array[0].minute,
                     });
                 });
             }
@@ -175,12 +237,15 @@ const styles = StyleSheet.create({
     },
 
     buttonSaveNote: {
-        marginHorizontal: 5,
+        marginHorizontal: 30,
+        marginVertical: 10,
+        fontSize: 24,
         color: 'rgba(63,31,0,0.85)',
     },
 
     buttonDeleteNote: {
         marginHorizontal: 5,
+        fontSize: 24,
         color: 'rgba(63,31,0,0.85)',
     },
 });
