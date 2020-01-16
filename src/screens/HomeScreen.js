@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import {
     Button,
     Text,
@@ -7,9 +7,14 @@ import {
     ScrollView,
     TouchableOpacity,
     RefreshControl,
-    FlatList,
-    StyleSheet,
+    FlatList, StyleSheet,
 } from "react-native";
+import { Notifications } from 'expo';
+import * as Permissions from 'expo-permissions';
+import Constants from "expo-constants";
+
+//TODO продумать базу данных, написать скрипт и потом занести сюда
+// доделать напоминания, вынести в таблицу добавить возможность включать и отключать их,
 
 export class HomeScreen extends React.Component {
     constructor(props) {
@@ -17,7 +22,8 @@ export class HomeScreen extends React.Component {
 
         this.state = {
             notes: [],
-            refreshing: false
+            refreshing: false,
+            notification: {},
         };
         console.log('HOMESCREEN');
     }
@@ -26,11 +32,16 @@ export class HomeScreen extends React.Component {
         title: "Notes"
     };
 
-    componentDidMount() {
-      console.log('component did mount Home')
-      this.update().then(() => {
-          console.log(this.state);
-      });
+    sendLocalScheduleNotification() {
+        Notifications.scheduleLocalNotificationAsync(
+            {
+                title: 'Напоминание',
+                body: 'testBody',
+                data: (new Date()),
+            },
+            {
+                time: (new Date()).getTime() + 1000,
+            })
     }
 
     render() {
@@ -38,16 +49,24 @@ export class HomeScreen extends React.Component {
 
         const notes = this.state.notes;
 
-        if (notes.length > 0) {
-            console.log(notes.length + ' notes found');
-        } else {
-            console.log('0 notes found');
-        }
+        console.log(notes.length + ' notes found');
 
         return (
             <SafeAreaView style = {styles.container}>
+                <Button
+                    title = 'notification'
+                    onPress = {() => {
+                        this.sendLocalNotification();
+                    }}
+                />
+                <Button
+                    title = 'schedule notification'
+                    onPress = {() => {
+                        this.sendLocalScheduleNotification();
+                    }}
+                />
                 <Button style = {styles.buttonAddNote}
-                    title = "Add Note"
+                    title = 'Add Note'
                     onPress = {() => {
                         console.log("add note was pressed");
                         this.props.navigation.navigate("Note", {
@@ -59,7 +78,6 @@ export class HomeScreen extends React.Component {
                         });
                     }}
                 />
-
                 <ScrollView
                     refreshControl = {
                         <RefreshControl
@@ -102,7 +120,7 @@ export class HomeScreen extends React.Component {
 
         db.transaction(tx => {
             tx.executeSql(
-                "create table if not exists notes (id integer primary key not null, title text, body text);"
+                "create table if not exists notes (id integer primary key not null, title text, body text, day integer, month integer, year integer, hour integer, minute integer);"
             );
         });
 
@@ -123,30 +141,30 @@ export class HomeScreen extends React.Component {
 
 const styles = StyleSheet.create({
 
-   container: {
-       flex: 1,
-       marginBottom: 10,
-   },
+    container: {
+        flex: 1,
+        // marginBottom: 10,
+    },
 
     listOfNotes: {
         padding: 5,
         paddingHorizontal: 10,
-        marginHorizontal: 5,
-        marginTop: 5,
-        flexDirection: 'row',
+        margin: 5,
+        flexDirection: 'column',
         backgroundColor: 'rgba(239,193,3,0.17)',
         justifyContent: 'flex-start',
-        alignItems: 'center',
         borderRadius: 5,
     },
 
     titleOfNotes: {
-        fontSize: 24,
-        color: 'rgba(81,58,13,0.95)',
+    fontSize: 24,
+    color: 'rgba(81,58,13,0.95)',
     },
 
     buttonAddNote: {
-        marginHorizontal: 5,
-        color: 'rgba(81,58,13,0.95)',
+    marginHorizontal: 10,
+    color: 'rgba(81,58,13,0.95)',
     },
 });
+
+
