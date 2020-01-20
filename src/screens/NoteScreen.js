@@ -11,21 +11,29 @@ import {
     TimePickerAndroid,
 } from 'react-native';
 
+class NotificationDateTime extends Component{
+}
+
 export class NoteScreen extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            title: null,
-            body: null,
-            day: null,
-            month: null,
-            year: null,
-            hour: null,
-            minute: null,
+            note: {
+                title: null,
+                body: null,
+            },
+            notification: {
+                day: null,
+                month: null,
+                year: null,
+                hour: null,
+                minute: null,
+            }
         };
+
         console.log('NOTESCREEN');
-    }
+    };
 
     static navigationOptions = {
         title: this.title,
@@ -33,7 +41,7 @@ export class NoteScreen extends Component {
 
     componentDidMount() {
         console.log('component did mount Note')
-    }
+    };
 
     componentWillMount() {
         console.log('component will mount Note');
@@ -43,7 +51,7 @@ export class NoteScreen extends Component {
         if (id != null) {
             this.select(id);
         }
-    }
+    };
 
     async pickDate() {
         try {
@@ -55,15 +63,19 @@ export class NoteScreen extends Component {
             if (action !== DatePickerAndroid.dissmissedAction) {
                 console.log('DatePickerAndroid.dissmissedAction');
                 this.setState({
-                    day: day,
-                    month: month + 1,
-                    year: year,
+                    notification: {
+                        day: day,
+                        month: month + 1,
+                        year: year,
+                        hour: this.state.notification.hour,
+                        minute: this.state.notification.minute,
+                    },
                 });
             }
         } catch ({code, message}) {
             console.warn('Cannot open date picker', message);
         }
-    }
+    };
 
     async pickTime() {
         try {
@@ -76,14 +88,19 @@ export class NoteScreen extends Component {
             if (action !== TimePickerAndroid.dismissedAction) {
                 console.log('TimePickerAndroid.dissmissedAction');
                 this.setState({
-                    hour: hour,
-                    minute: minute,
+                    notification: {
+                        day: this.state.notification.day,
+                        month: this.state.notification.month,
+                        year: this.state.notification.year,
+                        hour: hour,
+                        minute: minute,
+                    },
                 });
             }
         } catch ({ code, message }) {
             console.warn('Cannot open time picker', message);
         }
-    }
+    };
 
     render() {
         return(
@@ -96,31 +113,44 @@ export class NoteScreen extends Component {
                     title = 'Pick Time'
                     onPress = {() => this.pickTime()}
                 />
-                <Text>{this.state.day}.{this.state.month}.{this.state.year}   {this.state.hour}:{this.state.minute}</Text>
+                <Text>{this.state.notification.day}.{this.state.notification.month}.{this.state.notification.year}   {this.state.notification.hour}:{this.state.notification.minute}</Text>
                 <TextInput style = {styles.title}
                     placeholder = 'Title'
-                    onChangeText = {title => this.setState({title})}
-                    onSubmitEditing = {() => {console.log(this.state.title)}}
-                    value = {this.state.title}
+                    onChangeText = {title => this.setState({note: {title}})}
+                    onSubmitEditing = {() => {console.log(this.state.note.title)}}
+                    value = {this.state.note.title}
                 />
                 <ScrollView>
                     <TextInput style = {styles.text}
                         placeholder = 'Body'
-                        onChangeText = {body => this.setState({body})}
-                        onSubmitEditing = {() => {console.log(this.state.body)}}
+                        onChangeText = {body => this.setState({note: {body}})}
+                        onSubmitEditing = {() => {console.log(this.state.note.body)}}
                         multiline = { true }
-                        value = {this.state.body}
+                        value = {this.state.note.body}
                     />
                 </ScrollView>
                 <Button
                     title = 'Save Note'
                     onPress = {() => {
                         let id = this.props.navigation.getParam('id', null);
+                        let note = {
+                            title: this.state.note.title,
+                            body: this.state.note.body,
+                        };
+                        let notification = {
+                            day: this.state.notification.day,
+                            month: this.state.notification.month,
+                            year: this.state.notification.year,
+                            hour: this.state.notification.hour,
+                            minute: this.state.notification.minute,
+                        };
 
-                        this.save(id, this.state.title, this.state.body, this.state.day, this.state.month, this.state.year, this.state.hour, this.state.minute);
+                        this.save(id, note, notification);
                         this.setState({
-                            title: null,
-                            body: null,
+                            note: {
+                                title: null,
+                                body: null,
+                            },
                         });
 
                         console.log('save note button pressed');
@@ -146,7 +176,7 @@ export class NoteScreen extends Component {
                 />
             </SafeAreaView>
         )
-    }
+    };
 
     checkEmptyInput(textInput){
         if (textInput === null || textInput === ''){
@@ -154,65 +184,93 @@ export class NoteScreen extends Component {
         }
 
         return textInput;
+    };
+
+    executeSqlCommand(sqlStatement, args,
+                      callback = (transaction, { rows: { _array } }) => {
+                          console.log(JSON.stringify(_array));
+                      },
+                      errorCallback = (transaction, _error) => {
+                          console.log(JSON.stringify(_error));
+                      }){
+        db.transaction(tx => {
+            tx.executeSql(sqlStatement, args, callback, errorCallback);
+        });
     }
 
-    save(id, title, body, day, month, year, hour, minute){
+    save(id, note, notification){
         console.log("save method called")
 
-        title = this.checkEmptyInput(title);
+        note.title = this.checkEmptyInput(note.title);
 
         if (id == null) {
-            db.transaction(
-                tx => {
-                    tx.executeSql('insert into notes (title, body, day, month, year, hour, minute) values (?, ?, ?, ?, ?, ?, ?)',
-                        [title, body, day, month, year, hour, minute]
-                    );
-                }
+            this.executeSqlCommand(
+                'insert into notes ' +
+                    '(title, body) ' +
+                    'values (?, ?);',
+                [note.title, note.body]
+            );
+
+            this.executeSqlCommand(
+                'insert into notifications ' +
+                    '(day, month, year, hour, minute, noteId) ' +
+                    'values (?, ?, ?, ?, ?, ?);',
+                [notification.day, notification.month, notification.year, notification.hour, notification.minute, id]
             );
         } else {
-            db.transaction(
-                tx => {
-                    tx.executeSql('update notes set title = ?, body = ?, day = ?, month = ?, year = ?, hour = ?, minute = ? where id = ?',
-                        [title, body, day, month, year, hour, minute, id]
-                    );
-                }
+            this.executeSqlCommand(
+                'update notes set ' +
+                    'title = ?, ' +
+                    'body = ? ' +
+                    'where id = ?;',
+                [note.title, note.body, id]
+            );
+
+            this.executeSqlCommand(
+                'update notifications set ' +
+                    'day = ?, ' +
+                    'month = ?, ' +
+                    'year = ?, ' +
+                    'hour = ?, ' +
+                    'minute = ? ' +
+                    'where noteId = ?;',
+                [notification.day, notification.month, notification.year, notification.hour, notification.minute, id]
             );
         }
-    }
+    };
 
     select(id){
         console.log('select method called');
 
-        db.transaction(
-            tx => {
-                tx.executeSql('select * from notes where id = ?',
-                    [id],
-                    async (_, { rows: { _array } }) => {
-                    await this.setState({
-                        title: _array[0].title,
-                        body: _array[0].body,
-                        day: _array[0].day,
-                        month: _array[0].month,
-                        year: _array[0].year,
-                        hour: _array[0].hour,
-                        minute: _array[0].minute,
-                    });
-                });
-            }
-        );
-    }
+        this.executeSqlCommand(
+            'select * from notes where id = ?',
+            [id],
+            async (_, { rows: { _array } }) => {
+            await this.setState({
+                title: _array[0].title,
+                body: _array[0].body,
+            });
+        });
+
+        this.executeSqlCommand(
+            'select * from notifications where noteId = ?',
+            [id],
+            async (_, { rows: { _array } }) => {
+            await this.setState({
+                day: _array[0].day,
+                month: _array[0].month,
+                year: _array[0].year,
+                hour: _array[0].hour,
+                minute: _array[0].minute,
+            });
+        });
+    };
 
     delete(id){
         console.log("delete method called")
 
-        db.transaction(
-            tx => {
-                tx.executeSql('delete from notes where id = ?',
-                    [id]
-                );
-            }
-        );
-    }
+        this.executeSqlCommand('delete from notes where id = ?', [id]);
+    };
 }
 
 const styles = StyleSheet.create({
