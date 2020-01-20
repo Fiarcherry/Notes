@@ -10,11 +10,11 @@ import {
     FlatList, StyleSheet,
 } from "react-native";
 import { Notifications } from 'expo';
-import * as Permissions from 'expo-permissions';
-import Constants from "expo-constants";
+import { SQLite } from "expo-sqlite";
 
-//TODO продумать базу данных, написать скрипт и потом занести сюда
-// доделать напоминания, вынести в таблицу добавить возможность включать и отключать их,
+//const db = SQLite.openDatabase("db.db");
+
+//TODO список не появляется при запуска программы, доделать напоминания, добавить возможность включать и отключать их,
 
 export class HomeScreen extends React.Component {
     constructor(props) {
@@ -53,12 +53,6 @@ export class HomeScreen extends React.Component {
 
         return (
             <SafeAreaView style = {styles.container}>
-                <Button
-                    title = 'notification'
-                    onPress = {() => {
-                        this.sendLocalNotification();
-                    }}
-                />
                 <Button
                     title = 'schedule notification'
                     onPress = {() => {
@@ -113,28 +107,55 @@ export class HomeScreen extends React.Component {
         );
     }
 
+    executeSqlCommand(sqlStatement, args,
+                      callback = (transaction, { rows: { _array } }) => {
+                          console.log(JSON.stringify(_array));
+                      },
+                      errorCallback = (transaction, _error) => {
+                          console.log(JSON.stringify(_error));
+                      }){
+        db.transaction(tx => {
+            tx.executeSql(sqlStatement, args, callback, errorCallback);
+        });
+    }
+
     update = async () => {
         console.log("update method called");
 
         await this.setState({ refreshing: true });
 
-        db.transaction(tx => {
-            tx.executeSql(
-                "create table if not exists notes (id integer primary key not null, title text, body text, day integer, month integer, year integer, hour integer, minute integer);"
-            );
-        });
+        this.executeSqlCommand('PRAGMA foreign_keys=on', []);
+        this.executeSqlCommand('PRAGMA auto_vacuum = FULL', []);
+        //this.executeSqlCommand('drop table notes', []);
+        //this.executeSqlCommand('drop table notifications', []);
 
-        db.transaction(tx => {
-            tx.executeSql(
-                "select * from notes",
-                [],
-                async (_, { rows: { _array } }) => {
-                    await this.setState({
-                        notes: _array,
-                        refreshing: false
-                    });
-                }
-            );
+        this.executeSqlCommand(
+            'create table if not exists notes (' +
+                'idNotes integer primary key autoincrement not null, ' +
+                'title text, ' +
+                'body text)',
+            []
+        );
+        this.executeSqlCommand(
+            'create table if not exists notifications (' +
+                'idNotifications integer primary key autoincrement not null, ' +
+                'day integer, ' +
+                'month integer, ' +
+                'year integer, ' +
+                'hour integer, ' +
+                'minute integer, ' +
+                'noteId integer, ' +
+                'foreign key(noteId) references notes(idNotes))',
+            []
+        );
+        this.executeSqlCommand(
+            'select * from notes',
+            [],
+            async (_, { rows: { _array } }) => {
+            await this.setState({
+                notes: _array,
+                refreshing: false
+            });
         });
     };
 }
