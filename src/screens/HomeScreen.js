@@ -12,9 +12,12 @@ import {
 import { Notifications } from 'expo';
 import { SQLite } from "expo-sqlite";
 
+import {onStart, dropAllTables} from "../database/main";
+import {selectAllNotes} from "../database/notes";
+
 //const db = SQLite.openDatabase("db.db");
 
-//TODO список не появляется при запуска программы, доделать напоминания, добавить возможность включать и отключать их,
+//TODO доделать напоминания, добавить возможность включать и отключать их,
 
 export class HomeScreen extends React.Component {
     constructor(props) {
@@ -26,6 +29,12 @@ export class HomeScreen extends React.Component {
             notification: {},
         };
         console.log('HOMESCREEN');
+    }
+
+    componentDidMount() {
+        dropAllTables();
+        onStart();
+        this.update().then( this.setState({refreshing: false}))
     }
 
     static navigationOptions = {
@@ -82,41 +91,32 @@ export class HomeScreen extends React.Component {
                 >
                     <FlatList
                         data={this.state.notes}
-                        renderItem={({ item }) =>
-                            <TouchableOpacity style = {styles.listOfNotes}
-                                key = {item.id}
-                                onPress = {() => {
-                                    console.log(item.id + ' note was pressed');
-
-                                    this.props.navigation.navigate("Note", {
-                                        id: item.id,
-                                        onGoBack: () => {
-                                            this.update().then(r => {
-                                                console.log("on go back called");
-                                            });
-                                        }
-                                    });
-                                }}
-                            >
-                                <Text style = {styles.titleOfNotes}>{item.title}</Text>
-                            </TouchableOpacity>}
-                        keyExtractor={item => item.id}
+                        renderItem={({ item, index }) => {
+                            console.log(item);
+                            return(
+                                <TouchableOpacity
+                                    style = {styles.listOfNotes}
+                                    key = {index}
+                                    onPress = {() => {
+                                        console.log(item.id + ' note was pressed');
+                                        this.props.navigation.navigate("Note", {
+                                            id: item.id,
+                                            onGoBack: () => {
+                                                this.update().then(r => {
+                                                    console.log("on go back called");
+                                                });
+                                            }
+                                        });
+                                    }}
+                                >
+                                    <Text style = {styles.titleOfNotes}>{item.title}</Text>
+                                </TouchableOpacity>
+                            )
+                        }}
                     />
                 </ScrollView>
             </SafeAreaView>
         );
-    }
-
-    executeSqlCommand(sqlStatement, args,
-                      callback = (transaction, { rows: { _array } }) => {
-                          console.log(JSON.stringify(_array));
-                      },
-                      errorCallback = (transaction, _error) => {
-                          console.log(JSON.stringify(_error));
-                      }){
-        db.transaction(tx => {
-            tx.executeSql(sqlStatement, args, callback, errorCallback);
-        });
     }
 
     update = async () => {
