@@ -116,14 +116,28 @@ export class NoteScreen extends Component {
                 <Text>{this.state.notification.day}.{this.state.notification.month}.{this.state.notification.year}   {this.state.notification.hour}:{this.state.notification.minute}</Text>
                 <TextInput style = {styles.title}
                     placeholder = 'Title'
-                    onChangeText = {title => this.setState({note: {title}})}
+                    onChangeText = {(title) => {
+                        this.setState({
+                            note: {
+                                title: title,
+                                body : this.state.note.body,
+                            }
+                        })
+                    }}
                     onSubmitEditing = {() => {console.log(this.state.note.title)}}
                     value = {this.state.note.title}
                 />
                 <ScrollView>
                     <TextInput style = {styles.text}
                         placeholder = 'Body'
-                        onChangeText = {body => this.setState({note: {body}})}
+                        onChangeText = {(body) => {
+                            this.setState({
+                                note: {
+                                    title: this.state.note.title,
+                                    body : body,
+                                }
+                            })
+                        }}
                         onSubmitEditing = {() => {console.log(this.state.note.body)}}
                         multiline = { true }
                         value = {this.state.note.body}
@@ -146,12 +160,6 @@ export class NoteScreen extends Component {
                         };
 
                         this.save(id, note, notification);
-                        this.setState({
-                            note: {
-                                title: null,
-                                body: null,
-                            },
-                        });
 
                         console.log('save note button pressed');
 
@@ -247,8 +255,10 @@ export class NoteScreen extends Component {
             [id],
             async (_, { rows: { _array } }) => {
             await this.setState({
-                title: _array[0].title,
-                body: _array[0].body,
+                note: {
+                    title: _array[0].title,
+                    body: _array[0].body,
+                },
             });
         });
 
