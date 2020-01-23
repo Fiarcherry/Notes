@@ -14,6 +14,7 @@ import { SQLite } from "expo-sqlite";
 
 import {onStart, dropAllTables} from "../database/main";
 import {selectAllNotes} from "../database/notes";
+import {executeSqlCommand} from "../database/model";
 
 //const db = SQLite.openDatabase("db.db");
 
@@ -124,37 +125,13 @@ export class HomeScreen extends React.Component {
 
         await this.setState({ refreshing: true });
 
-        this.executeSqlCommand('PRAGMA foreign_keys=on', []);
-        this.executeSqlCommand('PRAGMA auto_vacuum = FULL', []);
-        //this.executeSqlCommand('drop table notes', []);
-        //this.executeSqlCommand('drop table notifications', []);
-
-        this.executeSqlCommand(
-            'create table if not exists notes (' +
-                'idNotes integer primary key autoincrement not null, ' +
-                'title text, ' +
-                'body text)',
-            []
-        );
-        this.executeSqlCommand(
-            'create table if not exists notifications (' +
-                'idNotifications integer primary key autoincrement not null, ' +
-                'day integer, ' +
-                'month integer, ' +
-                'year integer, ' +
-                'hour integer, ' +
-                'minute integer, ' +
-                'noteId integer, ' +
-                'foreign key(noteId) references notes(idNotes))',
-            []
-        );
-        this.executeSqlCommand(
+        executeSqlCommand(
             'select * from notes',
             [],
             async (_, { rows: { _array } }) => {
-            await this.setState({
-                notes: _array,
-                refreshing: false
+                await this.setState({
+                    notes: _array,
+                    refreshing: false
             });
         });
     };
