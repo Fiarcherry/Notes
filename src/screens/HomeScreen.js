@@ -111,7 +111,7 @@ export class HomeScreen extends React.Component {
     render() {
         console.log("param update is " + this.props.navigation.getParam("update", false));
 
-        const notes = this.state.notes;
+        let notes = this.state.notes;
 
         console.log(notes.length + ' notes found');
 
@@ -148,7 +148,6 @@ export class HomeScreen extends React.Component {
         console.log("update method called");
 
         await this.setState({ refreshing: true });
-
         console.log("refreshing true");
 
         executeSqlCommand(
@@ -160,10 +159,7 @@ export class HomeScreen extends React.Component {
                     notes: _array,
                     refreshing: false
             });
-        },
-            e => {
-                console.log(e);
-            });
+        });
 
         console.log("refreshing false");
     };
