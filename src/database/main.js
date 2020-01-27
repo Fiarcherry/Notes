@@ -1,11 +1,14 @@
-import {createNotes, dropNotes} from "./notes";
-import{executeSqlCommand} from "./model";
+import{executeSqlCommand} from "./executeCommand";
+import {createNote, dropNote} from "./note";
+import {createNotification, dropNotification} from "./notification";
 
 export function dropAllTables(){
-    dropNotes();
+    dropNote();
+    dropNotification();
 }
 
 export function onStart() {
     executeSqlCommand('PRAGMA foreign_keys=on', []);
-    createNotes();
+    createNote();
+    createNotification();
 }

@@ -13,12 +13,10 @@ import { Notifications } from 'expo';
 import { SQLite } from "expo-sqlite";
 
 import {onStart, dropAllTables} from "../database/main";
-import {selectAllNotes} from "../database/notes";
-import {executeSqlCommand} from "../database/model";
+import {selectAllNote} from "../database/note";
+import {executeSqlCommand} from "../database/executeCommand";
 
 //const db = SQLite.openDatabase("db.db");
-
-//TODO доделать напоминания, добавить возможность включать и отключать их,
 
 export class HomeScreen extends React.Component {
     constructor(props) {
@@ -32,14 +30,14 @@ export class HomeScreen extends React.Component {
         console.log('HOMESCREEN');
     }
 
-    componentDidMount() {
-        dropAllTables();
-        onStart();
-        this.update().then( this.setState({refreshing: false}))
-    }
+        componentDidMount() {
+            //dropAllTables();
+            onStart();
+            this.update().then(r => {console.log("componentDidMount")})
+        }
 
-    static navigationOptions = {
-        title: "Notes"
+        static navigationOptions = {
+            title: "Notes"
     };
 
     sendLocalScheduleNotification() {
@@ -93,7 +91,7 @@ export class HomeScreen extends React.Component {
                     <FlatList
                         data={this.state.notes}
                         renderItem={({ item, index }) => {
-                            console.log(item);
+                            console.log("notes in FlatList: " + item);
                             return(
                                 <TouchableOpacity
                                     style = {styles.listOfNotes}
@@ -125,15 +123,23 @@ export class HomeScreen extends React.Component {
 
         await this.setState({ refreshing: true });
 
+        console.log("refreshing true");
+
         executeSqlCommand(
-            'select * from notes',
+            'select * from note',
             [],
             async (_, { rows: { _array } }) => {
+                console.log("select: " + _array);
                 await this.setState({
                     notes: _array,
                     refreshing: false
             });
-        });
+        },
+            e => {
+                console.log(e);
+            });
+
+        console.log("refreshing false");
     };
 }
 

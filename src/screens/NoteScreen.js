@@ -212,37 +212,37 @@ export class NoteScreen extends Component {
         note.title = this.checkEmptyInput(note.title);
 
         if (id == null) {
+            // this.executeSqlCommand(
+            //     'insert into notification ' +
+            //     '(day, month, year, hour, minute) ' +
+            //     'values (?, ?, ?, ?, ?);',
+            //     [notification.day, notification.month, notification.year, notification.hour, notification.minute]
+            // );
+
             this.executeSqlCommand(
-                'insert into notes ' +
+                'insert into note ' +
                     '(title, body) ' +
                     'values (?, ?);',
                 [note.title, note.body]
             );
-
-            this.executeSqlCommand(
-                'insert into notifications ' +
-                    '(day, month, year, hour, minute, noteId) ' +
-                    'values (?, ?, ?, ?, ?, ?);',
-                [notification.day, notification.month, notification.year, notification.hour, notification.minute, id]
-            );
         } else {
-            this.executeSqlCommand(
-                'update notes set ' +
-                    'title = ?, ' +
-                    'body = ? ' +
-                    'where id = ?;',
-                [note.title, note.body, id]
-            );
+            // this.executeSqlCommand(
+            //     'update notification set ' +
+            //         'day = ?, ' +
+            //         'month = ?, ' +
+            //         'year = ?, ' +
+            //         'hour = ?, ' +
+            //         'minute = ? ' +
+            //         'where id = ?;',
+            //     [notification.day, notification.month, notification.year, notification.hour, notification.minute, id]
+            // );
 
             this.executeSqlCommand(
-                'update notifications set ' +
-                    'day = ?, ' +
-                    'month = ?, ' +
-                    'year = ?, ' +
-                    'hour = ?, ' +
-                    'minute = ? ' +
-                    'where noteId = ?;',
-                [notification.day, notification.month, notification.year, notification.hour, notification.minute, id]
+                'update note set ' +
+                'title = ?, ' +
+                'body = ? ' +
+                'where id = ?;',
+                [note.title, note.body, id]
             );
         }
     };
@@ -251,7 +251,7 @@ export class NoteScreen extends Component {
         console.log('select method called');
 
         this.executeSqlCommand(
-            'select * from notes where id = ?',
+            'select * from note where id = ?',
             [id],
             async (_, { rows: { _array } }) => {
             await this.setState({
@@ -262,24 +262,24 @@ export class NoteScreen extends Component {
             });
         });
 
-        this.executeSqlCommand(
-            'select * from notifications where noteId = ?',
-            [id],
-            async (_, { rows: { _array } }) => {
-            await this.setState({
-                day: _array[0].day,
-                month: _array[0].month,
-                year: _array[0].year,
-                hour: _array[0].hour,
-                minute: _array[0].minute,
-            });
-        });
+        // this.executeSqlCommand(
+        //     'select * from notification where id = ?',
+        //     [id],
+        //     async (_, { rows: { _array } }) => {
+        //     await this.setState({
+        //         day: _array[0].day,
+        //         month: _array[0].month,
+        //         year: _array[0].year,
+        //         hour: _array[0].hour,
+        //         minute: _array[0].minute,
+        //     });
+        // });
     };
 
     delete(id){
         console.log("delete method called")
 
-        this.executeSqlCommand('delete from notes where id = ?', [id]);
+        this.executeSqlCommand('delete from note where id = ?', [id]);
     };
 }
 
