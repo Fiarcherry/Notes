@@ -157,10 +157,10 @@ export class HomeScreen extends React.Component {
                 console.log("select: " + _array);
                 await this.setState({
                     notes: _array,
-                    refreshing: false
             });
         });
 
+        await this.setState({ refreshing: false });
         console.log("refreshing false");
     };
 }
