@@ -57,11 +57,19 @@ export class HomeScreen extends React.Component {
         console.log('HOMESCREEN');
     }
 
-        componentDidMount() {
-            //dropAllTables();
-            onStart();
-            this.update().then(r => {console.log("componentDidMount")})
-        }
+    static navigationOptions = ({navigation}) => {
+        return{
+            title: "Notes",
+            headerRight: () => <AddNoteButton navigation={navigation}/>,
+        };
+    };
+
+    componentDidMount() {
+        this.props.navigation.setParams({handleUpdate: this.update()});
+        //dropAllTables();
+        onStart();
+        this.update().then(r => {console.log("componentDidMount")})
+    }
 
         static navigationOptions = {
             title: "Notes"
