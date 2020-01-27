@@ -125,7 +125,7 @@ export class HomeScreen extends React.Component {
                     title = 'Add Note'
                     onPress = {this.onPressAddNote}
                 />
-                <ScrollView
+                <ScrollView style ={styles.scrollView}
                     refreshControl = {
                         <RefreshControl
                             refreshing={this.state.refreshing}
@@ -169,26 +169,50 @@ const styles = StyleSheet.create({
 
     container: {
         flex: 1,
-        // marginBottom: 10,
+    },
+
+    buttonAddNote: {
+        padding: 8,
+        paddingHorizontal: 15,
+        backgroundColor: "#fff",
+        marginRight: 30,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 1,
+        shadowRadius: 5,
+        elevation: 5,
+    },
+
+    scrollView: {
+
     },
 
     listOfNotes: {
+
+    },
+
+    oneNote: {
         padding: 5,
         paddingHorizontal: 10,
         margin: 5,
         flexDirection: 'column',
-        backgroundColor: 'rgba(239,193,3,0.17)',
         justifyContent: 'flex-start',
-        borderRadius: 5,
+        backgroundColor : "#fff",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 1,
+        shadowRadius: 5,
+        elevation: 5,
     },
 
-    titleOfNotes: {
+    titleOfNote: {
     fontSize: 24,
-    color: 'rgba(81,58,13,0.95)',
-    },
-
-    buttonAddNote: {
-    marginHorizontal: 10,
     color: 'rgba(81,58,13,0.95)',
     },
 });
