@@ -16,7 +16,34 @@ import {onStart, dropAllTables} from "../database/main";
 import {selectAllNote} from "../database/note";
 import {executeSqlCommand} from "../database/executeCommand";
 
-//const db = SQLite.openDatabase("db.db");
+export class AddNoteButton extends React.Component{
+    constructor(props) {
+        super(props);
+    }
+
+    onPressAddNote = () => {
+        console.log("add note was pressed");
+        this.props.navigation.navigate("Note", {
+            onGoBack: () => {
+                this.props.navigation.getParam('handleUpdate').then(r => {
+                    console.log("on go back called");
+                });
+                console.log("on go back after then called");
+            }
+        });
+    };
+
+    render() {
+        return(
+            <TouchableOpacity
+                style = {styles.buttonAddNote}
+                onPress={this.onPressAddNote}
+            >
+                <Text>+</Text>
+            </TouchableOpacity>
+        );
+    }
+}
 
 export class HomeScreen extends React.Component {
     constructor(props) {
