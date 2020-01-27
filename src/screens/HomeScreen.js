@@ -71,11 +71,7 @@ export class HomeScreen extends React.Component {
         this.update().then(r => {console.log("componentDidMount")})
     }
 
-        static navigationOptions = {
-            title: "Notes"
-    };
-
-    sendLocalScheduleNotification() {
+    sendLocalScheduleNotification = () => {
         Notifications.scheduleLocalNotificationAsync(
             {
                 title: 'Напоминание',
@@ -85,6 +81,31 @@ export class HomeScreen extends React.Component {
             {
                 time: (new Date()).getTime() + 1000,
             })
+    };
+
+    onPressNote = (item) => {
+        console.log(item.id + ' note was pressed');
+        this.props.navigation.navigate("Note", {
+            id: item.id,
+            onGoBack: () => {
+                this.update().then(r => {
+                    console.log("on go back called");
+                });
+            }
+        });
+    };
+
+    flatListItem = ({ item, index }) => {
+        //console.log("notes in FlatList: " + item.title);
+        return(
+            <TouchableOpacity
+                style = {styles.oneNote}
+                key = {index}
+                onPress = {this.onPressNote.bind(this, item)}
+            >
+                <Text style = {styles.titleOfNote}>{item.title}</Text>
+            </TouchableOpacity>
+        )
     }
 
     render() {
@@ -98,22 +119,11 @@ export class HomeScreen extends React.Component {
             <SafeAreaView style = {styles.container}>
                 <Button
                     title = 'schedule notification'
-                    onPress = {() => {
-                        this.sendLocalScheduleNotification();
-                    }}
+                    onPress = {this.sendLocalScheduleNotification}
                 />
                 <Button style = {styles.buttonAddNote}
                     title = 'Add Note'
-                    onPress = {() => {
-                        console.log("add note was pressed");
-                        this.props.navigation.navigate("Note", {
-                            onGoBack: () => {
-                                this.update().then(r => {
-                                    console.log("on go back called");
-                                });
-                            }
-                        });
-                    }}
+                    onPress = {this.onPressAddNote}
                 />
                 <ScrollView
                     refreshControl = {
@@ -124,29 +134,10 @@ export class HomeScreen extends React.Component {
                     }
                 >
                     <FlatList
+                        style={styles.listOfNotes}
                         data={this.state.notes}
-                        renderItem={({ item, index }) => {
-                            console.log("notes in FlatList: " + item);
-                            return(
-                                <TouchableOpacity
-                                    style = {styles.listOfNotes}
-                                    key = {index}
-                                    onPress = {() => {
-                                        console.log(item.id + ' note was pressed');
-                                        this.props.navigation.navigate("Note", {
-                                            id: item.id,
-                                            onGoBack: () => {
-                                                this.update().then(r => {
-                                                    console.log("on go back called");
-                                                });
-                                            }
-                                        });
-                                    }}
-                                >
-                                    <Text style = {styles.titleOfNotes}>{item.title}</Text>
-                                </TouchableOpacity>
-                            )
-                        }}
+                        keyExtractor={item => item.id.toString()}
+                        renderItem={this.flatListItem}
                     />
                 </ScrollView>
             </SafeAreaView>
