@@ -60,12 +60,12 @@ export class HomeScreen extends React.Component {
     static navigationOptions = ({navigation}) => {
         return{
             title: "Notes",
-            headerRight: () => <AddNoteButton navigation={navigation}/>,
+            //headerRight: () => <AddNoteButton navigation={navigation}/>,
         };
     };
 
     componentDidMount() {
-        this.props.navigation.setParams({handleUpdate: this.update()});
+        //this.props.navigation.setParams({handleUpdate: this.update()});
         //dropAllTables();
         onStart();
         this.update().then(r => {console.log("componentDidMount")})
