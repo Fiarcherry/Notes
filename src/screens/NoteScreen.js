@@ -9,14 +9,17 @@ import {
     Text,
     DatePickerAndroid,
     TimePickerAndroid,
+    Switch,
+    View,
+    Animated,
 } from 'react-native';
-
-class NotificationDateTime extends Component{
-}
 
 export class NoteScreen extends Component {
     constructor(props) {
         super(props);
+
+        this.animOpacityValue = new Animated.Value(0);
+        this.animHeightValue = new Animated.Value(0);
 
         this.state = {
             note: {
@@ -29,7 +32,8 @@ export class NoteScreen extends Component {
                 year: null,
                 hour: null,
                 minute: null,
-            }
+            },
+            switchValue: false,
         };
 
         console.log('NOTESCREEN');
@@ -57,15 +61,19 @@ export class NoteScreen extends Component {
         try {
             const { action, year, month, day } = await DatePickerAndroid.open({
                 mode: 'spinner',
-                date: new Date(),
+                minDate: new Date(),
             });
-
-            if (action !== DatePickerAndroid.dissmissedAction) {
+            let dayToAssign;
+            let monthToAssign;
+            if (action == DatePickerAndroid.dateSetAction) {
                 console.log('DatePickerAndroid.dissmissedAction');
+                dayToAssign = this.checkForZero(day);
+                monthToAssign = this.checkForZero(month + 1);
+
                 this.setState({
                     notification: {
-                        day: day,
-                        month: month + 1,
+                        day: dayToAssign,
+                        month: monthToAssign,
                         year: year,
                         hour: this.state.notification.hour,
                         minute: this.state.notification.minute,
@@ -80,20 +88,22 @@ export class NoteScreen extends Component {
     async pickTime() {
         try {
             const { action, hour, minute } = await TimePickerAndroid.open({
-                hour: 0,
-                minute: 0,
                 is24Hour: true,
                 mode: 'spinner',
             });
-            if (action !== TimePickerAndroid.dismissedAction) {
+            let hourToAssign;
+            let minuteToAssign;
+            if (action == TimePickerAndroid.timeSetAction) {
                 console.log('TimePickerAndroid.dissmissedAction');
+                hourToAssign = this.checkForZero(hour);
+                minuteToAssign = this.checkForZero(minute);
                 this.setState({
                     notification: {
                         day: this.state.notification.day,
                         month: this.state.notification.month,
                         year: this.state.notification.year,
-                        hour: hour,
-                        minute: minute,
+                        hour: hourToAssign,
+                        minute: minuteToAssign,
                     },
                 });
             }
@@ -102,18 +112,103 @@ export class NoteScreen extends Component {
         }
     };
 
+    checkForZero(value){
+        if (value < 10) return '0' + value;
+        return value;
+    }
+
+    //не работает
+    onPressDeleteNote(){
+        this.delete(this.props.navigation.getParam('id', null));
+
+        console.log('delete note button pressed');
+
+        this.props.navigation.state.params.onGoBack();
+        this.props.navigation.navigate("Home", {
+            update: true
+        });
+    }
+
+    setTodayDate(){
+        this.state.notification.day = this.checkForZero(new Date().getDate());
+        this.state.notification.month = this.checkForZero(new Date().getMonth() + 1);
+        this.state.notification.year = new Date().getFullYear();
+        this.state.notification.hour = this.checkForZero(new Date().getHours());
+        this.state.notification.minute = this.checkForZero(new Date().getMinutes());
+    }
+
+    toggleSwitch = (value) => {
+        this.setState({switchValue: value});
+
+        let opacityEndValue;
+        let heightEndValue;
+
+        if (this.state.switchValue){
+            opacityEndValue = 0;
+            heightEndValue = 0;
+        } else {
+            this.setTodayDate();
+            opacityEndValue = 1;
+            heightEndValue = 30;
+        }
+        Animated.parallel([
+            Animated.timing(
+                this.animOpacityValue,
+                {
+                    toValue: opacityEndValue,
+                    duration: 500,
+                }
+            ),
+            Animated.timing(
+                this.animHeightValue,
+                {
+                    toValue: heightEndValue,
+                    duration: 500,
+                }
+            )
+        ]).start();
+    };
+
     render() {
         return(
             <SafeAreaView style = {styles.container}>
-                <Button
-                    title = 'Pick Date'
-                    onPress = {() => this.pickDate()}
-                />
-                <Button
-                    title = 'Pick Time'
-                    onPress = {() => this.pickTime()}
-                />
-                <Text>{this.state.notification.day}.{this.state.notification.month}.{this.state.notification.year}   {this.state.notification.hour}:{this.state.notification.minute}</Text>
+                <TouchableOpacity
+                    style = {styles.buttonDeleteNote}
+                    onPress={() => {
+                        this.delete(this.props.navigation.getParam('id', null));
+
+                        console.log('delete note button pressed');
+
+                        this.props.navigation.state.params.onGoBack();
+                        this.props.navigation.navigate("Home", {
+                            update: true
+                        });
+                    }}
+                >
+                    <Text>Delete</Text>
+                </TouchableOpacity>
+
+                <View style = {styles.notificationView}>
+                    <Text style = {styles.notificationText}>Напомнить</Text>
+                    <Switch
+                        onValueChange = {this.toggleSwitch}
+                        value = {this.state.switchValue}
+                        thumbColor = {'#6499ff'}
+                        trackColor = {{true: 'rgba(100,153,255,0.5)'}}
+                    />
+                </View>
+                <Animated.View style = {[styles.notificationView, {opacity: this.animOpacityValue, height: this.animHeightValue}]}>
+                    <TouchableOpacity
+                        onPress = {() => this.pickDate()}
+                    >
+                        <Text style = {styles.notificationText}>{this.state.notification.day}.{this.state.notification.month}.{this.state.notification.year}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress = {() => this.pickTime()}
+                    >
+                        <Text style = {styles.notificationText}>{this.state.notification.hour}:{this.state.notification.minute}</Text>
+                    </TouchableOpacity>
+                </Animated.View>
                 <TextInput style = {styles.title}
                     placeholder = 'Title'
                     onChangeText = {(title) => {
@@ -162,19 +257,6 @@ export class NoteScreen extends Component {
                         this.save(id, note, notification);
 
                         console.log('save note button pressed');
-
-                        this.props.navigation.state.params.onGoBack();
-                        this.props.navigation.navigate("Home", {
-                            update: true
-                        });
-                    }}
-                />
-                <Button
-                    title = "Delete Note"
-                    onPress = {() => {
-                        this.delete(this.props.navigation.getParam('id', null));
-
-                        console.log('delete note button pressed');
 
                         this.props.navigation.state.params.onGoBack();
                         this.props.navigation.navigate("Home", {
@@ -312,8 +394,35 @@ const styles = StyleSheet.create({
     },
 
     buttonDeleteNote: {
-        marginHorizontal: 5,
-        fontSize: 24,
-        color: 'rgba(63,31,0,0.85)',
+        padding: 8,
+        paddingHorizontal: 15,
+        backgroundColor: "#fff",
+        margin: 10,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 1,
+        shadowRadius: 5,
+        elevation: 5,
+        alignItems: 'center',
+    },
+
+    notificationView: {
+        margin: 5,
+        marginHorizontal: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+
+    notificationText: {
+        fontSize: 18,
+    },
+
+    testBorder: {
+        borderColor: '#f00',
+        borderStyle: 'solid',
+        borderWidth: 1,
     },
 });
