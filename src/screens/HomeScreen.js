@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
         padding: 8,
         paddingHorizontal: 15,
         backgroundColor: "#fff",
-        marginRight: 30,
+        margin: 10,
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
@@ -184,6 +184,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 1,
         shadowRadius: 5,
         elevation: 5,
+        alignItems: 'center',
     },
 
     scrollView: {
