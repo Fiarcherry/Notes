@@ -21,18 +21,6 @@ export class AddNoteButton extends React.Component{
         super(props);
     }
 
-    onPressAddNote = () => {
-        console.log("add note was pressed");
-        this.props.navigation.navigate("Note", {
-            onGoBack: () => {
-                this.props.navigation.getParam('handleUpdate').then(r => {
-                    console.log("on go back called");
-                });
-                console.log("on go back after then called");
-            }
-        });
-    };
-
     render() {
         return(
             <TouchableOpacity
@@ -95,6 +83,17 @@ export class HomeScreen extends React.Component {
         });
     };
 
+    onPressAddNote = () => {
+        console.log("add note was pressed");
+        this.props.navigation.navigate("Note", {
+            onGoBack: () => {
+                this.update().then(r => {
+                    console.log("on go back called");
+                });
+            }
+        });
+    };
+
     flatListItem = ({ item, index }) => {
         //console.log("notes in FlatList: " + item.title);
         return(
@@ -121,10 +120,12 @@ export class HomeScreen extends React.Component {
                     title = 'schedule notification'
                     onPress = {this.sendLocalScheduleNotification}
                 />
-                <Button style = {styles.buttonAddNote}
-                    title = 'Add Note'
-                    onPress = {this.onPressAddNote}
-                />
+                <TouchableOpacity
+                    style = {styles.buttonAddNote}
+                    onPress={this.onPressAddNote}
+                >
+                    <Text>+</Text>
+                </TouchableOpacity>
                 <ScrollView style ={styles.scrollView}
                     refreshControl = {
                         <RefreshControl
