@@ -13,6 +13,7 @@ import {
     View,
     Animated,
 } from 'react-native';
+import {executeSqlCommand} from "../database/executeCommand";
 
 export class NoteScreen extends Component {
     constructor(props) {
@@ -27,11 +28,14 @@ export class NoteScreen extends Component {
                 body: null,
             },
             notification: {
+                id: null,
+                enable: false,
                 day: null,
                 month: null,
                 year: null,
                 hour: null,
                 minute: null,
+                noteId: null,
             },
             switchValue: false,
         };
@@ -44,12 +48,10 @@ export class NoteScreen extends Component {
     };
 
     componentDidMount() {
-        console.log('component did mount Note')
+
     };
 
     componentWillMount() {
-        console.log('component will mount Note');
-
         let id = this.props.navigation.getParam('id', null);
 
         if (id != null) {
@@ -66,17 +68,19 @@ export class NoteScreen extends Component {
             let dayToAssign;
             let monthToAssign;
             if (action == DatePickerAndroid.dateSetAction) {
-                console.log('DatePickerAndroid.dissmissedAction');
                 dayToAssign = this.checkForZero(day);
                 monthToAssign = this.checkForZero(month + 1);
 
                 this.setState({
                     notification: {
+                        id: this.state.notification.id,
+                        enable: this.state.notification.enable,
                         day: dayToAssign,
                         month: monthToAssign,
                         year: year,
                         hour: this.state.notification.hour,
                         minute: this.state.notification.minute,
+                        noteId: this.state.notification.noteId,
                     },
                 });
             }
@@ -94,16 +98,18 @@ export class NoteScreen extends Component {
             let hourToAssign;
             let minuteToAssign;
             if (action == TimePickerAndroid.timeSetAction) {
-                console.log('TimePickerAndroid.dissmissedAction');
                 hourToAssign = this.checkForZero(hour);
                 minuteToAssign = this.checkForZero(minute);
                 this.setState({
                     notification: {
+                        id: this.state.notification.id,
+                        enable: this.state.notification.enable,
                         day: this.state.notification.day,
                         month: this.state.notification.month,
                         year: this.state.notification.year,
                         hour: hourToAssign,
                         minute: minuteToAssign,
+                        noteId: this.state.notification.noteId,
                     },
                 });
             }
@@ -121,8 +127,6 @@ export class NoteScreen extends Component {
     onPressDeleteNote(){
         this.delete(this.props.navigation.getParam('id', null));
 
-        console.log('delete note button pressed');
-
         this.props.navigation.state.params.onGoBack();
         this.props.navigation.navigate("Home", {
             update: true
@@ -133,8 +137,21 @@ export class NoteScreen extends Component {
         this.state.notification.day = this.checkForZero(new Date().getDate());
         this.state.notification.month = this.checkForZero(new Date().getMonth() + 1);
         this.state.notification.year = new Date().getFullYear();
-        this.state.notification.hour = this.checkForZero(new Date().getHours());
+        this.state.notification.hour = this.checkForZero(new Date().getHours() + 1);
         this.state.notification.minute = this.checkForZero(new Date().getMinutes());
+
+        // this.setState({
+        //     notification: {
+        //         id: this.state.notification.id,
+        //         enable: this.state.notification.enable,
+        //         day: this.checkForZero(new Date().getDate()),
+        //         month: this.checkForZero(new Date().getMonth() + 1),
+        //         year: new Date().getFullYear(),
+        //         hour: this.checkForZero(new Date().getHours() + 1),
+        //         minute: this.checkForZero(new Date().getMinutes()),
+        //         noteId: this.state.notification.noteId,
+        //     },
+        // });
     }
 
     toggleSwitch = (value) => {
@@ -146,10 +163,34 @@ export class NoteScreen extends Component {
         if (this.state.switchValue){
             opacityEndValue = 0;
             heightEndValue = 0;
+            this.setState({
+                notification: {
+                    id: this.state.notification.id,
+                    enable: false,
+                    day: this.state.notification.day,
+                    month: this.state.notification.month,
+                    year: this.state.notification.year,
+                    hour: this.state.notification.hour,
+                    minute: this.state.notification.minute,
+                    noteId: this.state.notification.noteId,
+                }
+            });
         } else {
             this.setTodayDate();
             opacityEndValue = 1;
             heightEndValue = 30;
+            this.setState({
+                notification: {
+                    id: this.state.notification.id,
+                    enable: true,
+                    day: this.state.notification.day,
+                    month: this.state.notification.month,
+                    year: this.state.notification.year,
+                    hour: this.state.notification.hour,
+                    minute: this.state.notification.minute,
+                    noteId: this.state.notification.noteId,
+                }
+            });
         }
         Animated.parallel([
             Animated.timing(
@@ -176,8 +217,6 @@ export class NoteScreen extends Component {
                     style = {styles.buttonDeleteNote}
                     onPress={() => {
                         this.delete(this.props.navigation.getParam('id', null));
-
-                        console.log('delete note button pressed');
 
                         this.props.navigation.state.params.onGoBack();
                         this.props.navigation.navigate("Home", {
@@ -219,7 +258,9 @@ export class NoteScreen extends Component {
                             }
                         })
                     }}
-                    onSubmitEditing = {() => {console.log(this.state.note.title)}}
+                    onSubmitEditing = {() => {
+                        //TODO сохранить заметку
+                    }}
                     value = {this.state.note.title}
                 />
                 <ScrollView>
@@ -233,7 +274,9 @@ export class NoteScreen extends Component {
                                 }
                             })
                         }}
-                        onSubmitEditing = {() => {console.log(this.state.note.body)}}
+                        onSubmitEditing = {() => {
+                            //TODO сохранить заметку
+                        }}
                         multiline = { true }
                         value = {this.state.note.body}
                     />
@@ -247,16 +290,17 @@ export class NoteScreen extends Component {
                             body: this.state.note.body,
                         };
                         let notification = {
+                            id: this.state.notification.id,
+                            enable: this.state.notification.enable,
                             day: this.state.notification.day,
                             month: this.state.notification.month,
                             year: this.state.notification.year,
                             hour: this.state.notification.hour,
                             minute: this.state.notification.minute,
+                            noteId: this.state.notification.noteId,
                         };
 
                         this.save(id, note, notification);
-
-                        console.log('save note button pressed');
 
                         this.props.navigation.state.params.onGoBack();
                         this.props.navigation.navigate("Home", {
@@ -277,30 +321,18 @@ export class NoteScreen extends Component {
     };
 
     executeSqlCommand(sqlStatement, args,
-                      callback = (transaction, { rows: { _array } }) => {
-                          console.log(JSON.stringify(_array));
-                      },
-                      errorCallback = (transaction, _error) => {
-                          console.log(JSON.stringify(_error));
-                      }){
+                      callback = (transaction, { rows: { _array } }) => {},
+                      errorCallback = (transaction, _error) => {}){
         db.transaction(tx => {
             tx.executeSql(sqlStatement, args, callback, errorCallback);
         });
     }
 
     save(id, note, notification){
-        console.log("save method called")
-
+        console.log('функция save');
         note.title = this.checkEmptyInput(note.title);
 
         if (id == null) {
-            // this.executeSqlCommand(
-            //     'insert into notification ' +
-            //     '(day, month, year, hour, minute) ' +
-            //     'values (?, ?, ?, ?, ?);',
-            //     [notification.day, notification.month, notification.year, notification.hour, notification.minute]
-            // );
-
             this.executeSqlCommand(
                 'insert into note ' +
                     '(title, body) ' +
@@ -308,17 +340,6 @@ export class NoteScreen extends Component {
                 [note.title, note.body]
             );
         } else {
-            // this.executeSqlCommand(
-            //     'update notification set ' +
-            //         'day = ?, ' +
-            //         'month = ?, ' +
-            //         'year = ?, ' +
-            //         'hour = ?, ' +
-            //         'minute = ? ' +
-            //         'where id = ?;',
-            //     [notification.day, notification.month, notification.year, notification.hour, notification.minute, id]
-            // );
-
             this.executeSqlCommand(
                 'update note set ' +
                 'title = ?, ' +
@@ -327,11 +348,44 @@ export class NoteScreen extends Component {
                 [note.title, note.body, id]
             );
         }
+
+        console.log('enable ' + this.state.notification.enable);
+        console.log('noteId ' + this.state.notification.noteId);
+
+        if (this.state.notification.enable){
+            if (this.state.notification.noteId == null) {
+                console.log('проходит');
+                console.log(this.state.notification);
+                this.executeSqlCommand(
+                    'insert into notification ' +
+                    '(day, month, year, hour, minute, noteId) ' +
+                    'values (?, ?, ?, ?, ?, ?);',
+                    [notification.day.toString(), notification.month.toString(), notification.year, notification.hour, notification.minute, id]
+                );
+            } else {
+                this.executeSqlCommand(
+                    'update notification set ' +
+                    'day = ?, ' +
+                    'month = ?, ' +
+                    'year = ?, ' +
+                    'hour = ?, ' +
+                    'minute = ?, ' +
+                    'noteId = ? ' +
+                    'where id = ?;',
+                    [notification.day.toString(), notification.month.toString(), notification.year, notification.hour, notification.minute, id, notification.id]
+                );
+            }
+            this.executeSqlCommand(
+            'select * from notification;',
+            [id],
+            async (_, { rows: { _array } }) => {
+                await console.log(_array[0]);
+            });
+        }
     };
 
     select(id){
-        console.log('select method called');
-
+        console.log('функция select');
         this.executeSqlCommand(
             'select * from note where id = ?',
             [id],
@@ -343,25 +397,35 @@ export class NoteScreen extends Component {
                 },
             });
         });
+        this.executeSqlCommand(
+            'select * from notification where noteId = ?',
+            [id],
+            async (_, { rows: { _array } }) => {
+            if (_array != null) {
+                console.log('выборка уведомления');
+                await this.setState({
+                    notification: {
+                        id: _array[0].id,
+                        day: _array[0].day,
+                        month: _array[0].month,
+                        year: _array[0].year,
+                        hour: _array[0].hour,
+                        minute: _array[0].minute,
+                        noteId: _array[0].noteId,
+                    },
+                });
+            } else {
+                console.log('уведомления для записи нет');
+            }
+        });
 
-        // this.executeSqlCommand(
-        //     'select * from notification where id = ?',
-        //     [id],
-        //     async (_, { rows: { _array } }) => {
-        //     await this.setState({
-        //         day: _array[0].day,
-        //         month: _array[0].month,
-        //         year: _array[0].year,
-        //         hour: _array[0].hour,
-        //         minute: _array[0].minute,
-        //     });
-        // });
     };
 
     delete(id){
-        console.log("delete method called")
-
         this.executeSqlCommand('delete from note where id = ?', [id]);
+        this.executeSqlCommand('delete from notification where noteId = ?', [id]);
+
+        //db.exec({sql: 'vacuum note'})
     };
 }
 
