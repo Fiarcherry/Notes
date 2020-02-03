@@ -10,14 +10,21 @@ export  function selectAllNote() {
     })
 }
 
+export  function selectOneNote(id) {
+    executeSqlCommand(
+    'select * from note where id = ' + id,
+    [],
+    async (_, { rows: { _array } }) => {
+        return(await _array);
+    })
+}
+
 export function createNote() {
     executeSqlCommand(
         'create table if not exists note (' +
         'id integer primary key autoincrement not null, ' +
         'title text, ' +
-        'body text) ',
-        // 'notificationId integer' +
-        // 'foreign key(notificationId) references notification(id))',
+        'body text)',
         []
     );
 }
