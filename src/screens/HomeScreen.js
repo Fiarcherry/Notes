@@ -56,7 +56,7 @@ export class HomeScreen extends React.Component {
         //this.props.navigation.setParams({handleUpdate: this.update()});
         //dropAllTables();
         onStart();
-        this.update().then(r => {console.log("componentDidMount")})
+        this.update().then(r => {})
     }
 
     sendLocalScheduleNotification = () => {
@@ -72,30 +72,23 @@ export class HomeScreen extends React.Component {
     };
 
     onPressNote = (item) => {
-        console.log(item.id + ' note was pressed');
         this.props.navigation.navigate("Note", {
             id: item.id,
             onGoBack: () => {
-                this.update().then(r => {
-                    console.log("on go back called");
-                });
+                this.update().then(r => {});
             }
         });
     };
 
     onPressAddNote = () => {
-        console.log("add note was pressed");
         this.props.navigation.navigate("Note", {
             onGoBack: () => {
-                this.update().then(r => {
-                    console.log("on go back called");
-                });
+                this.update().then(r => {});
             }
         });
     };
 
     flatListItem = ({ item, index }) => {
-        //console.log("notes in FlatList: " + item.title);
         return(
             <TouchableOpacity
                 style = {styles.oneNote}
@@ -108,12 +101,6 @@ export class HomeScreen extends React.Component {
     }
 
     render() {
-        console.log("param update is " + this.props.navigation.getParam("update", false));
-
-        let notes = this.state.notes;
-
-        console.log(notes.length + ' notes found');
-
         return (
             <SafeAreaView style = {styles.container}>
                 <Button
@@ -136,7 +123,7 @@ export class HomeScreen extends React.Component {
                 >
                     <FlatList
                         style={styles.listOfNotes}
-                        data={this.state.notes}
+                        data={this.state.notes.reverse()}
                         keyExtractor={item => item.id.toString()}
                         renderItem={this.flatListItem}
                     />
@@ -146,23 +133,24 @@ export class HomeScreen extends React.Component {
     }
 
     update = async () => {
-        console.log("update method called");
 
         await this.setState({ refreshing: true });
-        console.log("refreshing true");
+
+        // let selected = selectAllNote();
+        // await this.setState({
+        //     notes: selected,
+        // });
 
         executeSqlCommand(
             'select * from note',
             [],
             async (_, { rows: { _array } }) => {
-                console.log("select: " + _array);
                 await this.setState({
                     notes: _array,
             });
         });
 
         await this.setState({ refreshing: false });
-        console.log("refreshing false");
     };
 }
 
