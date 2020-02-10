@@ -32,10 +32,18 @@ export function createNotification() {
         'month text, ' +
         'year integer, ' +
         'hour integer, ' +
-        'minute integer' +
-        'noteId integer' +
+        'minute integer, ' +
+        'uniqId text, ' +
+        'noteId integer, ' +
         'foreign key(noteId) references note(id))',
-        []
+        [],
+
+        (transaction, {rows: {_array}}) => {
+            console.log('error ' + _array);
+        },
+        (transaction, _error) => {
+            console.log('error ' + _error);
+        }
     );
 }
 

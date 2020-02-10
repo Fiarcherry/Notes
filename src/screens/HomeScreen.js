@@ -103,10 +103,6 @@ export class HomeScreen extends React.Component {
     render() {
         return (
             <SafeAreaView style = {styles.container}>
-                <Button
-                    title = 'schedule notification'
-                    onPress = {this.sendLocalScheduleNotification}
-                />
                 <TouchableOpacity
                     style = {styles.buttonAddNote}
                     onPress={this.onPressAddNote}
