@@ -38,9 +38,9 @@ export class HomeScreen extends React.Component {
         super(props);
 
         this.state = {
-            notes: [],
+            items: [],
             refreshing: false,
-            notification: {},
+            notificationTime: null,
         };
         console.log('HOMESCREEN');
     }
@@ -96,9 +96,12 @@ export class HomeScreen extends React.Component {
                 onPress = {this.onPressNote.bind(this, item)}
             >
                 <Text style = {styles.titleOfNote}>{item.title}</Text>
+                <View style = {{padding: 10, borderRadius: 5, backgroundColor: "#0a0"}}/>
+                <Text>{this.state.items[index].hour}:{this.state.items[index].minute}</Text>
+                <Text>{this.state.items[index].day}.{this.state.items[index].month}.{this.state.items[index].year}</Text>
             </TouchableOpacity>
         )
-    }
+    };
 
     render() {
         return (
@@ -119,7 +122,7 @@ export class HomeScreen extends React.Component {
                 >
                     <FlatList
                         style={styles.listOfNotes}
-                        data={this.state.notes.reverse()}
+                        data={this.state.items.reverse()}
                         keyExtractor={item => item.id.toString()}
                         renderItem={this.flatListItem}
                     />
@@ -132,18 +135,15 @@ export class HomeScreen extends React.Component {
 
         await this.setState({ refreshing: true });
 
-        // let selected = selectAllNote();
-        // await this.setState({
-        //     notes: selected,
-        // });
-
         executeSqlCommand(
-            'select * from note',
-            [],
-            async (_, { rows: { _array } }) => {
-                await this.setState({
-                    notes: _array,
+        'select * from note join notification on notification.noteId = note.id',
+        [],
+        async (_, { rows: { _array } }) => {
+            await this.setState({
+                items: _array,
             });
+            console.log(JSON.stringify(_array));
+            console.log(JSON.stringify(this.state));
         });
 
         await this.setState({ refreshing: false });
@@ -184,8 +184,9 @@ const styles = StyleSheet.create({
         padding: 5,
         paddingHorizontal: 10,
         margin: 5,
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         backgroundColor : "#fff",
         shadowColor: "#000",
         shadowOffset: {
