@@ -39,8 +39,6 @@ export class NoteScreen extends Component {
             },
             switchValue: null,
         };
-
-        console.log('NOTESCREEN');
     };
 
     static navigationOptions = {
@@ -312,14 +310,9 @@ export class NoteScreen extends Component {
     }
 
     save = async () => {
-        console.log('функция save');
-
         let id = this.props.navigation.getParam('id', null);
-
         this.state.note.title = this.checkEmptyInput(this.state.note.title);
-
         if (id == null) {
-            console.log('новая запись заметке');
             this.executeSqlCommand(
                 'insert into note ' +
                     '(title, body) ' +
@@ -328,7 +321,6 @@ export class NoteScreen extends Component {
                     this.state.note.body]
             );
         } else {
-            console.log('изменить запись заметке');
             this.executeSqlCommand(
                 'update note set ' +
                 'title = ?, ' +
@@ -338,9 +330,6 @@ export class NoteScreen extends Component {
                     this.state.note.body, id]
             );
         }
-
-        console.log('switchValue is ' + this.state.switchValue);
-
         if (this.state.switchValue){
             if (this.state.notification.uniqId != null){
                 await Notifications.cancelScheduledNotificationAsync(this.state.notification.uniqId).then(r => {});
@@ -348,22 +337,17 @@ export class NoteScreen extends Component {
             await this.sendLocalScheduleNotification();
             if (this.state.notification.id == null) {
                 this.executeSqlCommand(
-                    'insert into notification ' +
-                    '(day, month, year, hour, minute, uniqId, noteId) ' +
-                    'values (?, ?, ?, ?, ?, ?, ?);',
-                    [this.state.notification.day.toString(),
-                        this.state.notification.month.toString(),
-                        this.state.notification.year,
-                        this.state.notification.hour,
-                        this.state.notification.minute,
-                        this.state.notification.uniqId.toString(),
-                        id],
-                    (transaction, results) => {
-                        console.log(results);
-                    },
-                    (transaction, _error) => {
-                        console.log(_error);
-                });
+                'insert into notification ' +
+                '(day, month, year, hour, minute, uniqId, noteId) ' +
+                'values (?, ?, ?, ?, ?, ?, ?);',
+                [this.state.notification.day.toString(),
+                    this.state.notification.month.toString(),
+                    this.state.notification.year,
+                    this.state.notification.hour,
+                    this.state.notification.minute,
+                    this.state.notification.uniqId.toString(),
+                    id]
+                );
             } else {
                 this.executeSqlCommand(
                 'update notification set ' +
@@ -394,29 +378,17 @@ export class NoteScreen extends Component {
     };
 
     select(id){
-        console.log('функция select');
         this.executeSqlCommand(
         'select * from note where id = ?',
         [id],
         async (_, { rows: { _array } }) => {
-            console.log('выборка заметки');
-            console.log(_array);
             await this.setState({
                 note: {
                     title: _array[0].title,
                     body: _array[0].body,
                 },
             });
-        },
-        (transaction, _error) => {
-            console.log(_error);
         });
-        this.executeSqlCommand(
-            'select * from notification',
-            [],
-            async (_, { rows: { _array } }) => {
-                console.log('все уведомления ' + JSON.stringify(_array));
-            });
         this.executeSqlCommand(
         'select * from notification where noteId = ?',
         [id],
@@ -456,17 +428,12 @@ export class NoteScreen extends Component {
                     )
                 ]).start();
             }
-        },
-        (transaction, _error) => {
-            console.log(_error);
         });
     };
-
     delete(id){
         Notifications.cancelScheduledNotificationAsync(this.state.notification.uniqId).then(r => {});
         this.executeSqlCommand('delete from notification where noteId = ?', [id]);
         this.executeSqlCommand('delete from note where id = ?', [id]);
-
         //db.exec({sql: 'vacuum note'});
     };
 }
